@@ -26,7 +26,8 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { Plus, Store, ExternalLink, Copy } from "lucide-react";
+import Image from "next/image";
+import { Plus, Store, ExternalLink, Copy, Upload, ImageIcon, X } from "lucide-react";
 import type { Database } from "@/types/database";
 
 type Restaurant = Database["public"]["Tables"]["restaurants"]["Row"];
@@ -38,6 +39,8 @@ export default function RestaurantsPage() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   useEffect(() => {
     fetch("/api/restaurants")
@@ -64,6 +67,7 @@ export default function RestaurantsPage() {
         zip: fd.get("zip"),
         phone: fd.get("phone"),
         email: fd.get("email"),
+        logo_url: logoUrl,
         commission_rate: parseFloat(fd.get("commission_rate") as string) / 100 || 0.1,
         has_website_subscription: fd.get("has_website_subscription") === "on",
       }),
@@ -78,7 +82,20 @@ export default function RestaurantsPage() {
     }
 
     setRestaurants((prev) => [data, ...prev]);
+    setLogoUrl(null);
     setOpen(false);
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoUploading(true);
+    const body = new FormData();
+    body.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body });
+    const data = await res.json();
+    setLogoUploading(false);
+    if (data.url) setLogoUrl(data.url);
   }
 
   function copyLink(slug: string) {
@@ -105,6 +122,41 @@ export default function RestaurantsPage() {
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="description">Description</Label>
                   <Textarea id="description" name="description" placeholder="Brief description..." rows={2} />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Logo</Label>
+                  <div className="flex items-start gap-4">
+                    {logoUrl ? (
+                      <div className="relative h-16 w-16 shrink-0 rounded-lg border overflow-hidden bg-muted">
+                        <Image src={logoUrl} alt="Logo" fill className="object-contain" />
+                        <button
+                          type="button"
+                          onClick={() => setLogoUrl(null)}
+                          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-dashed bg-muted">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-1">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground hover:border-primary hover:text-foreground transition-colors">
+                        <Upload className="h-4 w-4" />
+                        {logoUploading ? "Uploading..." : "Upload PNG or JPG"}
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg"
+                          className="sr-only"
+                          onChange={handleLogoUpload}
+                          disabled={logoUploading}
+                        />
+                      </label>
+                      <p className="text-xs text-muted-foreground">Max 2 MB</p>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="address">Address</Label>

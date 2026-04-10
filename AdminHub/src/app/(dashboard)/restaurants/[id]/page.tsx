@@ -11,16 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { ArrowLeft, Copy, Code, Upload } from "lucide-react";
+// Dialog imports removed — MenuEditor handles its own dialogs
+import Image from "next/image";
+import { ArrowLeft, Copy, Code, Upload, ImageIcon, X } from "lucide-react";
+import { MenuEditor } from "@/components/menu-editor";
 import type { Database } from "@/types/database";
 
 type Restaurant = Database["public"]["Tables"]["restaurants"]["Row"];
@@ -31,15 +25,13 @@ export default function RestaurantDetailPage() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [menuJson, setMenuJson] = useState("");
-  const [menuImporting, setMenuImporting] = useState(false);
-  const [menuMsg, setMenuMsg] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/restaurants/${id}`)
       .then((r) => r.json())
-      .then((d) => { if (d.id) setRestaurant(d); })
+      .then((d) => { if (d.id) { setRestaurant(d); setLogoUrl(d.logo_url); } })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -61,7 +53,7 @@ export default function RestaurantDetailPage() {
         zip: fd.get("zip"),
         phone: fd.get("phone"),
         email: fd.get("email"),
-        logo_url: fd.get("logo_url"),
+        logo_url: logoUrl,
         commission_rate: parseFloat(fd.get("commission_rate") as string) / 100 || restaurant.commission_rate,
       }),
     });
@@ -93,28 +85,16 @@ export default function RestaurantDetailPage() {
     if (data.id) setRestaurant(data);
   }
 
-  async function handleMenuImport() {
-    setMenuImporting(true);
-    setMenuMsg("");
-    try {
-      const parsed = JSON.parse(menuJson);
-      const res = await fetch(`/api/restaurants/${id}/menu-import`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMenuMsg("Menu imported successfully!");
-        setMenuJson("");
-        setTimeout(() => setMenuOpen(false), 1500);
-      } else {
-        setMenuMsg(data.error || "Import failed");
-      }
-    } catch {
-      setMenuMsg("Invalid JSON format");
-    }
-    setMenuImporting(false);
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoUploading(true);
+    const body = new FormData();
+    body.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body });
+    const data = await res.json();
+    setLogoUploading(false);
+    if (data.url) setLogoUrl(data.url);
   }
 
   const orderingLink = restaurant ? `${typeof window !== "undefined" ? window.location.origin : ""}/order/${restaurant.slug}` : "";
@@ -150,8 +130,39 @@ export default function RestaurantDetailPage() {
                     <Textarea id="description" name="description" defaultValue={restaurant.description ?? ""} rows={2} />
                   </div>
                   <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="logo_url">Logo URL</Label>
-                    <Input id="logo_url" name="logo_url" defaultValue={restaurant.logo_url ?? ""} placeholder="https://..." />
+                    <Label>Logo</Label>
+                    <div className="flex items-start gap-4">
+                      {logoUrl ? (
+                        <div className="relative h-16 w-16 shrink-0 rounded-lg border overflow-hidden bg-muted">
+                          <Image src={logoUrl} alt="Logo" fill className="object-contain" />
+                          <button
+                            type="button"
+                            onClick={() => setLogoUrl(null)}
+                            className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-dashed bg-muted">
+                          <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 space-y-1">
+                        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground hover:border-primary hover:text-foreground transition-colors">
+                          <Upload className="h-4 w-4" />
+                          {logoUploading ? "Uploading..." : "Upload PNG or JPG"}
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            className="sr-only"
+                            onChange={handleLogoUpload}
+                            disabled={logoUploading}
+                          />
+                        </label>
+                        <p className="text-xs text-muted-foreground">Max 2 MB</p>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="address">Address</Label>
@@ -174,42 +185,11 @@ export default function RestaurantDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Menu import */}
+          {/* Menu editor */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
-                Menu
-                <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
-                  <DialogTrigger render={<Button size="sm" />}>
-                    <Upload className="mr-2 h-3.5 w-3.5" />Import Menu JSON
-                  </DialogTrigger>
-                  <DialogContent className="max-w-lg">
-                    <DialogHeader><DialogTitle>Import Menu from JSON</DialogTitle></DialogHeader>
-                    <div className="space-y-3">
-                      <p className="text-xs text-muted-foreground">
-                        Paste a JSON object with: name, categories[].name, categories[].items[].name/price/description, and optional modifier_groups[].modifiers[].
-                      </p>
-                      <Textarea
-                        value={menuJson}
-                        onChange={(e) => setMenuJson(e.target.value)}
-                        rows={12}
-                        className="font-mono text-xs"
-                        placeholder='{"name":"Main Menu","categories":[{"name":"Appetizers","items":[{"name":"Nachos","price":9.99}]}]}'
-                      />
-                      {menuMsg && <p className={`text-sm ${menuMsg.includes("success") ? "text-green-600" : "text-destructive"}`}>{menuMsg}</p>}
-                    </div>
-                    <DialogFooter>
-                      <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-                      <Button onClick={handleMenuImport} disabled={menuImporting || !menuJson.trim()}>
-                        {menuImporting ? "Importing..." : "Import"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-base">Menu</CardTitle></CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Use "Import Menu JSON" to add a full menu with categories, items, and modifiers.</p>
+              <MenuEditor restaurantId={id} />
             </CardContent>
           </Card>
         </div>
