@@ -1,41 +1,86 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CreditCard, CheckCircle, AlertCircle } from "lucide-react";
+
+interface Restaurant {
+  id: string;
+  name: string;
+  slug: string;
+  stripe_account_id: string | null;
+  stripe_onboarding_complete: boolean;
+  commission_rate: number;
+}
 
 export default function PaymentsPage() {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/restaurants")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setRestaurants(d); })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const connected = restaurants.filter((r) => r.stripe_onboarding_complete).length;
+  const pending = restaurants.filter((r) => !r.stripe_onboarding_complete).length;
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Payments"
-        description="Stripe Connect integration and payout management"
-      />
+      <PageHeader title="Payments" description="Stripe Connect integration and payout management" />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Restaurants</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">{loading ? "..." : restaurants.length}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Stripe Connected</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">{loading ? "..." : connected}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Setup</CardTitle>
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">{loading ? "..." : pending}</div></CardContent>
+        </Card>
+      </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Coming Soon</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base">Restaurant Payment Status</CardTitle></CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-4">
-              <CreditCard className="h-7 w-7 text-muted-foreground" />
-            </div>
-            <h3 className="text-base font-medium">
-              Stripe Connect Integration
-            </h3>
-            <p className="text-sm text-muted-foreground mt-2 max-w-md">
-              This page will manage payment processing via Stripe, restaurant payouts through Stripe Connect, refund workflows, and full payment audit trails.
+          {loading ? (
+            <p className="text-sm text-muted-foreground py-4">Loading...</p>
+          ) : restaurants.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              No restaurants yet. Add restaurants to manage their Stripe Connect accounts.
             </p>
-            <div className="mt-6 grid gap-2 text-left text-sm text-muted-foreground">
-              <p>Planned features:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Customer payment processing</li>
-                <li>Platform commission calculation</li>
-                <li>Restaurant payout management</li>
-                <li>Refund workflow</li>
-                <li>Payment audit log</li>
-              </ul>
+          ) : (
+            <div className="space-y-3">
+              {restaurants.map((r) => (
+                <div key={r.id} className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <p className="text-sm font-medium">{r.name}</p>
+                    <p className="text-xs text-muted-foreground">Commission: {(r.commission_rate * 100).toFixed(1)}%</p>
+                  </div>
+                  <Badge variant={r.stripe_onboarding_complete ? "default" : "outline"}>
+                    {r.stripe_onboarding_complete ? "Connected" : "Not Connected"}
+                  </Badge>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

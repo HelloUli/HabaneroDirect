@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -11,7 +12,6 @@ import {
   Settings,
   BarChart3,
   CreditCard,
-  Flame,
 } from "lucide-react";
 
 const navItems = [
@@ -29,11 +29,15 @@ export function Sidebar() {
 
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:bg-sidebar lg:text-sidebar-foreground">
-      <div className="flex h-14 items-center gap-2 border-b px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Flame className="h-4 w-4 text-primary-foreground" />
-        </div>
-        <span className="font-semibold text-sm">Habanero Direct</span>
+      <div className="flex h-14 items-center border-b px-4">
+        <Image
+          src="/habanero-logo.png"
+          alt="Habanero Direct"
+          width={200}
+          height={44}
+          className="h-10 w-auto object-contain"
+          priority
+        />
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">

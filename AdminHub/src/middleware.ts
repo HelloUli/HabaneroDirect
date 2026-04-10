@@ -17,7 +17,7 @@ export default auth((req) => {
 
   if (pathname.startsWith("/settings")) {
     const role = req.auth.user?.role;
-    if (role !== "super_admin") {
+    if (role !== "super_admin" && role !== "admin") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
@@ -26,5 +26,7 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|public).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.svg$|.*\\.gif$|.*\\.webp$|.*\\.ico$).*)",
+  ],
 };

@@ -32,6 +32,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["users"]["Insert"]>;
+        Relationships: [];
       };
       restaurants: {
         Row: {
@@ -63,6 +64,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["restaurants"]["Insert"]>;
+        Relationships: [];
       };
       customers: {
         Row: {
@@ -79,6 +81,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["customers"]["Insert"]>;
+        Relationships: [];
       };
       orders: {
         Row: {
@@ -123,6 +126,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;
+        Relationships: [];
       };
       order_items: {
         Row: {
@@ -141,6 +145,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["order_items"]["Insert"]>;
+        Relationships: [];
       };
       order_item_modifiers: {
         Row: {
@@ -154,6 +159,7 @@ export interface Database {
           id?: string;
         };
         Update: Partial<Database["public"]["Tables"]["order_item_modifiers"]["Insert"]>;
+        Relationships: [];
       };
       menus: {
         Row: {
@@ -173,6 +179,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["menus"]["Insert"]>;
+        Relationships: [];
       };
       menu_categories: {
         Row: {
@@ -192,6 +199,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["menu_categories"]["Insert"]>;
+        Relationships: [];
       };
       menu_items: {
         Row: {
@@ -214,6 +222,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["menu_items"]["Insert"]>;
+        Relationships: [];
       };
       modifier_groups: {
         Row: {
@@ -235,6 +244,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["modifier_groups"]["Insert"]>;
+        Relationships: [];
       };
       modifiers: {
         Row: {
@@ -255,6 +265,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["modifiers"]["Insert"]>;
+        Relationships: [];
       };
       promotions: {
         Row: {
@@ -279,6 +290,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["promotions"]["Insert"]>;
+        Relationships: [];
       };
       platform_settings: {
         Row: {
@@ -296,6 +308,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["platform_settings"]["Insert"]>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

@@ -1,61 +1,79 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Store,
-  ShoppingCart,
-  DollarSign,
-  TrendingUp,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Store, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
 
-const stats = [
-  {
-    title: "Total Restaurants",
-    value: "—",
-    description: "Connect database to see data",
-    icon: Store,
-  },
-  {
-    title: "Total Orders",
-    value: "—",
-    description: "All time",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Revenue",
-    value: "—",
-    description: "All time gross",
-    icon: DollarSign,
-  },
-  {
-    title: "Commission Earned",
-    value: "—",
-    description: "Platform earnings",
-    icon: TrendingUp,
-  },
-];
+interface Stats {
+  restaurants: number;
+  orders: number;
+  revenue: number;
+  commission: number;
+}
+
+interface Order {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+  restaurants: { name: string } | null;
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+}
+
+const statusColor: Record<string, string> = {
+  placed: "bg-blue-100 text-blue-800",
+  confirmed: "bg-indigo-100 text-indigo-800",
+  preparing: "bg-yellow-100 text-yellow-800",
+  ready: "bg-green-100 text-green-800",
+  out_for_delivery: "bg-purple-100 text-purple-800",
+  delivered: "bg-green-200 text-green-900",
+  rejected: "bg-red-100 text-red-800",
+  cancelled: "bg-gray-100 text-gray-800",
+};
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [stats, setStats] = useState<Stats>({ restaurants: 0, orders: 0, revenue: 0, commission: 0 });
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/stats").then((r) => r.json()),
+      fetch("/api/orders?limit=5").then((r) => r.json()),
+    ]).then(([s, o]) => {
+      if (s.restaurants !== undefined) setStats(s);
+      if (Array.isArray(o)) setRecentOrders(o);
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const statCards = [
+    { title: "Total Restaurants", value: stats.restaurants.toString(), icon: Store },
+    { title: "Total Orders", value: stats.orders.toString(), icon: ShoppingCart },
+    { title: "Revenue", value: fmt(stats.revenue), icon: DollarSign },
+    { title: "Commission Earned", value: fmt(stats.commission), icon: TrendingUp },
+  ];
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        description="Overview of the Habanero Direct platform"
-      />
+      <PageHeader title="Dashboard" description="Overview of the Habanero Direct platform" />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
+        {statCards.map((s) => (
+          <Card key={s.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">{s.title}</CardTitle>
+              <s.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.description}
-              </p>
+              <div className="text-2xl font-bold">{loading ? "..." : s.value}</div>
             </CardContent>
           </Card>
         ))}
@@ -63,23 +81,44 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Recent Orders</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-base">Recent Orders</CardTitle></CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              No orders yet. Orders will appear here once the database is connected and customers begin placing orders.
-            </p>
+            {recentOrders.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4">No orders yet. Orders appear here as customers place them.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentOrders.map((o) => (
+                  <div key={o.id} className="flex items-center justify-between rounded-lg border p-3 cursor-pointer hover:bg-muted/50" onClick={() => router.push("/orders")}>
+                    <div>
+                      <p className="text-sm font-medium">#{o.order_number}</p>
+                      <p className="text-xs text-muted-foreground">{(o.restaurants as { name: string } | null)?.name ?? "Unknown"}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={statusColor[o.status] ?? ""} variant="secondary">{o.status.replace(/_/g, " ")}</Badge>
+                      <span className="text-sm font-medium">{fmt(o.total)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Restaurant Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              No restaurant data yet. Add restaurants to see performance metrics.
-            </p>
+          <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            <button onClick={() => router.push("/restaurants")} className="w-full rounded-lg border p-3 text-left hover:bg-muted/50 transition-colors">
+              <p className="text-sm font-medium">Manage Restaurants</p>
+              <p className="text-xs text-muted-foreground">Add restaurants, update menus, manage settings</p>
+            </button>
+            <button onClick={() => router.push("/orders")} className="w-full rounded-lg border p-3 text-left hover:bg-muted/50 transition-colors">
+              <p className="text-sm font-medium">View Orders</p>
+              <p className="text-xs text-muted-foreground">Monitor orders, process refunds</p>
+            </button>
+            <button onClick={() => router.push("/promotions")} className="w-full rounded-lg border p-3 text-left hover:bg-muted/50 transition-colors">
+              <p className="text-sm font-medium">Promotions</p>
+              <p className="text-xs text-muted-foreground">Create and manage promo codes</p>
+            </button>
           </CardContent>
         </Card>
       </div>
