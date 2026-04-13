@@ -79,49 +79,29 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Recent Orders</CardTitle></CardHeader>
-          <CardContent>
-            {recentOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4">No orders yet. Orders appear here as customers place them.</p>
-            ) : (
-              <div className="space-y-3">
-                {recentOrders.map((o) => (
-                  <div key={o.id} className="flex items-center justify-between rounded-lg border p-3 cursor-pointer hover:bg-muted/50" onClick={() => router.push("/orders")}>
-                    <div>
-                      <p className="text-sm font-medium">#{o.order_number}</p>
-                      <p className="text-xs text-muted-foreground">{(o.restaurants as { name: string } | null)?.name ?? "Unknown"}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={statusColor[o.status] ?? ""} variant="secondary">{o.status.replace(/_/g, " ")}</Badge>
-                      <span className="text-sm font-medium">{fmt(o.total)}</span>
-                    </div>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Recent Orders</CardTitle></CardHeader>
+        <CardContent>
+          {recentOrders.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No orders yet. Orders appear here as customers place them.</p>
+          ) : (
+            <div className="space-y-3">
+              {recentOrders.map((o) => (
+                <div key={o.id} className="flex items-center justify-between rounded-lg border p-3 cursor-pointer hover:bg-muted/50" onClick={() => router.push("/orders")}>
+                  <div>
+                    <p className="text-sm font-medium">#{o.order_number}</p>
+                    <p className="text-xs text-muted-foreground">{(o.restaurants as { name: string } | null)?.name ?? "Unknown"}</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            <button onClick={() => router.push("/restaurants")} className="w-full rounded-lg border p-3 text-left hover:bg-muted/50 transition-colors">
-              <p className="text-sm font-medium">Manage Restaurants</p>
-              <p className="text-xs text-muted-foreground">Add restaurants, update menus, manage settings</p>
-            </button>
-            <button onClick={() => router.push("/orders")} className="w-full rounded-lg border p-3 text-left hover:bg-muted/50 transition-colors">
-              <p className="text-sm font-medium">View Orders</p>
-              <p className="text-xs text-muted-foreground">Monitor orders, process refunds</p>
-            </button>
-            <button onClick={() => router.push("/promotions")} className="w-full rounded-lg border p-3 text-left hover:bg-muted/50 transition-colors">
-              <p className="text-sm font-medium">Promotions</p>
-              <p className="text-xs text-muted-foreground">Create and manage promo codes</p>
-            </button>
-          </CardContent>
-        </Card>
-      </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={statusColor[o.status] ?? ""} variant="secondary">{o.status.replace(/_/g, " ")}</Badge>
+                    <span className="text-sm font-medium">{fmt(o.total)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

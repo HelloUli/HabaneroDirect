@@ -113,9 +113,9 @@ export default function RestaurantDetailPage() {
         </Button>
       </PageHeader>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
         {/* Left column: edit form */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2">
           <Card>
             <CardHeader><CardTitle className="text-base">Restaurant Details</CardTitle></CardHeader>
             <CardContent>
@@ -184,14 +184,6 @@ export default function RestaurantDetailPage() {
               </form>
             </CardContent>
           </Card>
-
-          {/* Menu editor */}
-          <Card>
-            <CardHeader><CardTitle className="text-base">Menu</CardTitle></CardHeader>
-            <CardContent>
-              <MenuEditor restaurantId={id} />
-            </CardContent>
-          </Card>
         </div>
 
         {/* Right column: status & links */}
@@ -233,13 +225,23 @@ export default function RestaurantDetailPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader><CardTitle className="text-base">Embed Button</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <Textarea value={embedCode} readOnly className="text-xs font-mono" rows={3} />
+          <Card size="sm">
+            <CardHeader className="pb-2"><CardTitle className="text-base">Embed Button</CardTitle></CardHeader>
+            <CardContent className="space-y-2 pt-0">
+              <Textarea value={embedCode} readOnly className="min-h-0 resize-none text-xs font-mono" rows={2} />
               <Button variant="outline" size="sm" className="w-full" onClick={() => navigator.clipboard.writeText(embedCode)}>
                 <Code className="mr-2 h-3.5 w-3.5" />Copy Embed Code
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Full-width menu below details + sidebar */}
+        <div className="lg:col-span-3">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Menu</CardTitle></CardHeader>
+            <CardContent>
+              <MenuEditor restaurantId={id} />
             </CardContent>
           </Card>
         </div>
