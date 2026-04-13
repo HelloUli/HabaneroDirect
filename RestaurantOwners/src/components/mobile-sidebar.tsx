@@ -52,8 +52,9 @@ export function MobileSidebar({ role }: { role: string }) {
             src="/logo.png"
             alt="Habanero Direct"
             width={200}
-            height={44}
+            height={200}
             className="h-10 w-auto object-contain"
+            unoptimized
           />
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">

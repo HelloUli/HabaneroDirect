@@ -27,6 +27,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 import { Plus, Store, ExternalLink, Copy, Upload, ImageIcon, X } from "lucide-react";
 import type { Database } from "@/types/database";
 
@@ -70,6 +71,9 @@ export default function RestaurantsPage() {
         logo_url: logoUrl,
         commission_rate: parseFloat(fd.get("commission_rate") as string) / 100 || 0.1,
         has_website_subscription: fd.get("has_website_subscription") === "on",
+        owner_name: fd.get("owner_name"),
+        owner_email: fd.get("owner_email"),
+        owner_password: fd.get("owner_password"),
       }),
     });
 
@@ -191,6 +195,26 @@ export default function RestaurantsPage() {
                 <div className="flex items-center gap-2 pt-6">
                   <input id="has_website_subscription" name="has_website_subscription" type="checkbox" className="h-4 w-4 rounded border-input" />
                   <Label htmlFor="has_website_subscription" className="text-sm font-normal">Website subscription (5% rate)</Label>
+                </div>
+              </div>
+
+              <Separator />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Owner Account</p>
+                <p className="text-xs text-muted-foreground">Creates login credentials for the Restaurant Owners portal</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="owner_name">Owner Name *</Label>
+                  <Input id="owner_name" name="owner_name" required placeholder="John Doe" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="owner_email">Owner Email *</Label>
+                  <Input id="owner_email" name="owner_email" type="email" required placeholder="owner@restaurant.com" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="owner_password">Owner Password *</Label>
+                  <Input id="owner_password" name="owner_password" type="password" required minLength={8} placeholder="Min 8 characters" />
                 </div>
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}

@@ -1,4 +1,5 @@
 export type UserRole = "super_admin" | "admin";
+export type RestaurantUserRole = "owner" | "staff";
 export type OrderStatus =
   | "placed"
   | "confirmed"
@@ -64,6 +65,26 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["restaurants"]["Insert"]>;
+        Relationships: [];
+      };
+      restaurant_users: {
+        Row: {
+          id: string;
+          restaurant_id: string;
+          email: string;
+          name: string;
+          password_hash: string;
+          role: RestaurantUserRole;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["restaurant_users"]["Row"], "id" | "created_at" | "updated_at"> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["restaurant_users"]["Insert"]>;
         Relationships: [];
       };
       customers: {
@@ -315,6 +336,7 @@ export interface Database {
     Functions: Record<string, never>;
     Enums: {
       user_role: UserRole;
+      restaurant_user_role: RestaurantUserRole;
       order_status: OrderStatus;
       order_type: OrderType;
       promo_type: PromoType;

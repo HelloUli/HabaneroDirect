@@ -87,8 +87,9 @@ export default function LoginPage() {
             src="/logo.png"
             alt="Habanero Direct"
             width={220}
-            height={56}
-            className="mx-auto object-contain"
+            height={220}
+            className="mx-auto h-14 w-auto object-contain"
+            unoptimized
             priority
           />
           <CardTitle className="text-xl">Habanero Direct</CardTitle>

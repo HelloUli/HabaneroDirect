@@ -8,8 +8,17 @@ import { Separator } from "@/components/ui/separator";
 import { User, Shield, Building } from "lucide-react";
 
 export default function SettingsPage() {
-  const { data: session } = useSession();
-  const user = session?.user as Record<string, unknown> | undefined;
+  const { data: session, status } = useSession();
+  const user = session?.user;
+
+  if (status === "loading") {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Settings" description="View your account information" />
+        <p className="text-sm text-muted-foreground">Loading account details…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -26,11 +35,11 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Name</p>
-              <p className="text-sm font-medium mt-1">{user?.name as string || "—"}</p>
+              <p className="text-sm font-medium mt-1">{user?.name || "—"}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</p>
-              <p className="text-sm mt-1">{user?.email as string || "—"}</p>
+              <p className="text-sm mt-1">{user?.email || "—"}</p>
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -39,7 +48,7 @@ export default function SettingsPage() {
                 <span className="text-sm">Role</span>
               </div>
               <Badge variant="secondary" className="capitalize">
-                {user?.role as string || "—"}
+                {(user as Record<string, unknown> | undefined)?.role as string || "—"}
               </Badge>
             </div>
           </CardContent>

@@ -43,8 +43,9 @@ export function Sidebar({ role }: { role: string }) {
           src="/logo.png"
           alt="Habanero Direct"
           width={200}
-          height={44}
+          height={200}
           className="h-10 w-auto object-contain"
+          unoptimized
           priority
         />
       </div>
